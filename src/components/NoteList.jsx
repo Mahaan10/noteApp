@@ -1,6 +1,6 @@
 import { useNotes, useNotesDispatch } from "../context/NotesContext";
 
-const NoteList = ({ sort }) => {
+const NoteList = ({ sort, setSort }) => {
   const notes = useNotes();
   let sortedNotes = notes;
   sort === "earliest"
@@ -11,14 +11,14 @@ const NoteList = ({ sort }) => {
     ? (sortedNotes = [...notes].sort(
         (a, b) => new Date(b.time) - new Date(a.time)
       ))
-    : (sortedNotes = [...notes].sort(
-        (a, b) => Number(b.completed) - Number(a.completed)
-      ));
+    : sort === "completed"
+    ? (sortedNotes = sortedNotes.filter((note) => note.completed))
+    : (sortedNotes = sortedNotes.filter((note) => !note.completed));
 
   return (
     <div className="flex w-4/6 mx-auto min-[0px]:max-[608px]:w-full">
       <div className="flex-col gap-4 w-full min-[0px]:max-[608px]:text-sm flex">
-        <NoteStatus />
+        <NoteStatus sort={sort} setSort={setSort} />
         <ul className="list-none flex flex-col gap-4">
           {sortedNotes.map((note) => (
             <NoteItem key={note.id} notes={note} />
@@ -73,7 +73,7 @@ const NoteItem = ({ notes }) => {
   );
 };
 
-const NoteStatus = () => {
+const NoteStatus = ({ setSort }) => {
   const notes = useNotes();
   const allNotes = notes.length;
   const completedNotes = notes.filter((note) => note.completed).length;
@@ -90,17 +90,26 @@ const NoteStatus = () => {
 
   return (
     <div className="flex justify-between items-center">
-      <button className="text-slate-300 hover:text-white">
+      <button
+        className="text-slate-300 hover:text-white"
+        onClick={() => setSort("latest")}
+      >
         All
         <span className="bg-gray-700 rounded-md px-1 text-sm">{allNotes}</span>
       </button>
-      <button className="text-slate-300 hover:text-white">
+      <button
+        className="text-slate-300 hover:text-white"
+        onClick={() => setSort("completed")}
+      >
         Completed
         <span className="bg-gray-700 rounded-md px-1 text-sm ml-1">
           {completedNotes}
         </span>
       </button>
-      <button className="text-slate-300 hover:text-white">
+      <button
+        className="text-slate-300 hover:text-white"
+        onClick={() => setSort("open")}
+      >
         Open
         <span className="bg-gray-700 rounded-md px-1 text-sm">{openNotes}</span>
       </button>
