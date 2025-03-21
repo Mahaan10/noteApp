@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer } from "react";
+import { createContext, useContext, useEffect, useReducer } from "react";
 
 const NotesContext = createContext(null);
 const notesDispatchContext = createContext(null);
@@ -6,15 +6,21 @@ const notesDispatchContext = createContext(null);
 function notesReducer(notes, { type, payload }) {
   switch (type) {
     case "addNote": {
-      return [...notes, payload];
+      const updatedNotes = [...notes, payload];
+      localStorage.setItem("notes", JSON.stringify(updatedNotes));
+      return updatedNotes;
     }
     case "removeNote": {
-      return notes.filter((notes) => notes.id !== payload);
+      const updatedNotes = notes.filter((notes) => notes.id !== payload);
+      localStorage.setItem("notes", JSON.stringify(updatedNotes));
+      return updatedNotes;
     }
     case "completeNote": {
-      return notes.map((note) =>
+      const updatedNotes = notes.map((note) =>
         note.id === payload ? { ...note, completed: !note.completed } : note
       );
+      localStorage.setItem("notes", JSON.stringify(updatedNotes));
+      return updatedNotes;
     }
     default:
       throw new Error("unknown error" + type);
@@ -22,7 +28,13 @@ function notesReducer(notes, { type, payload }) {
 }
 
 export function NotesProvider({ children }) {
-  const [notes, dispatch] = useReducer(notesReducer, []);
+  const storedNotes = JSON.parse(localStorage.getItem("notes")) || [];
+  const [notes, dispatch] = useReducer(notesReducer, storedNotes);
+
+  useEffect(() => {
+    localStorage.setItem("notes", JSON.stringify(notes));
+  }, [notes]);
+
   return (
     <NotesContext.Provider value={notes}>
       <notesDispatchContext.Provider value={dispatch}>
